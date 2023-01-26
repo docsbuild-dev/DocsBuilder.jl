@@ -45,10 +45,15 @@ function parent_queue(tree::Doctree, me::Int = tree.current)
 	end
 	return v
 end
-function findchild(tree::Doctree, from::Int, name::String)
+function findchild(tree::Doctree, from::Int, full::String)
 	tb = tree.data[from]
 	for ind in tb.children
-		if tree.data[ind].name == name
+		base = tree.data[ind]
+		if isa(base, DirBase)
+			if base.name == full
+				return ind
+			end
+		elseif fullname(base::FileBase) == full
 			return ind
 		end
 	end
@@ -192,10 +197,10 @@ function debug(io::IO, tree::Doctree)
 end
 
 # assume that src is a file
-function get_href(tree::Doctree, tar::Int, src::Int = tree.current; simple::Bool, filesuffix = ".html")
+function get_href(tree::Doctree, tar::Int, src::Int = tree.current; build_index, simple::Bool)
 	tb = tree.data[tar]
 	isfile = isa(tb, FileBase)
-	href = isfile ? tb.target : "$(tb.name)/index$(filesuffix)"
+	href = isfile ? tb.target : "$(tb.name)/$(build_index)"
 	if !simple
 		queue = parent_queue(tree, src)
 		while true
