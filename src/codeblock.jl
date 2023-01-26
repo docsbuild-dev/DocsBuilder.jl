@@ -89,3 +89,12 @@ end
 function typed_codeblock_to_html(::Val{:encoded}, content::AbstractString, pss::PagesSetting, args)
 	return "<div class='encoded'>$(ify_md(content, pss, false))</div>"
 end
+
+function typed_codeblock_to_html(::Val{insert}, content::AbstractString, pss::PagesSetting, args)
+	popfirst!(args)
+	language = isempty(args) ? :html : Symbol(lowercase(popfirst!(args)))
+	language::Symbol
+	return literal_to_html(Val(language), content, pss, args)
+end
+
+literal_to_html(::Val{html}, content, _, _) = content
