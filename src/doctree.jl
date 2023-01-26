@@ -1,9 +1,9 @@
 abstract type DoctreeBase end
 mutable struct FileBase <: DoctreeBase
 	is_outlined::Bool
-	generated::Bool # for make_rec control
+	need_wrap::Bool
 	parent::Int
-	name::String # without suffix
+	name::String # without ext
 	ext::String
 	title::String
 	target::String

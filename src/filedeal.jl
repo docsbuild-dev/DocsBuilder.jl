@@ -4,7 +4,7 @@ function filedeal(v::Val; fbase::FileBase, method::Symbol, pss::PagesSetting)
 	end
 	if method == :copy
 		cp(pss.source_leafpath, pss.target_leafpath; force=true)
-		fbase.generated = true
+		fbase.need_wrap = false
 		fbase.target = pss.fullname
 		return
 	end

@@ -12,9 +12,12 @@ function build(source_root::AbstractString, target_root::AbstractString, pss::Pa
 	pss.trace.source_root = source_root = expand_slash(abspath(source_root))
 	pss.trace.target_root = target_root = expand_slash(abspath(target_root))
 	tree = Doctree("root")
-	pss.root_folder.docs = remove_slash(pss.root_folder.docs)
+	docs = pss.root_folder.docs = remove_slash(pss.root_folder.docs)
 	cd(source_root*docs) do
 		scan_rec(tree, pss; outlined = true, path = "")
+	end
+	cd(source_root*docs) do
+		wrap_rec(tree, pss; path = "", pathv = [])
 	end
 end
 
@@ -51,7 +54,7 @@ function scan_rec(tree::Doctree, pss::PagesSetting; outlined::Bool, path::String
 		if isfile(fullname)
 			name, ext = splitext2(fullname)
 			title = get(ts, fullname, "")
-			fbase = FileBase(omode, false, tree.current, name, ext, title, "", "")
+			fbase = FileBase(omode, true, tree.current, name, ext, title, "", "")
 			method = Symbol(get(methods, fullname, :default))
 			pss.trace.leafname = fullname
 			filedeal(Val(Symbol(suf)); fbase = fbase, method = method, pss = pss)
