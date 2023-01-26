@@ -12,19 +12,19 @@ function build(source_root::AbstractString, target_root::AbstractString, pss::Pa
 	pss.trace.source_root = source_root = expand_slash(abspath(source_root))
 	pss.trace.target_root = target_root = expand_slash(abspath(target_root))
 	tree = Doctree("root")
-	docs = pss.root_folder.docs
+	pss.root_folder.docs = remove_slash(pss.root_folder.docs)
 	cd(source_root*docs) do
-		scan_rec(tree, pss; outlined = true, path = "$(docs)/", pathv = [docs])
+		scan_rec(tree, pss; outlined = true, path = "")
 	end
 end
 
-function scan_rec(tree::Doctree, pss::PagesSetting; outlined::Bool, path::String, pathv::Vector{String})
+function scan_rec(tree::Doctree, pss::PagesSetting; outlined::Bool, path::String)
 	trace = pss.trace
 	trace.path = path
-	trace.source_path = trace.source_root*path
-	tpath = trace.target_path = trace.target_root*path
+	trace.source_path = trace.source_root*pss.root_folder.docs*path
+	tpath = trace.target_path = trace.target_root*"docs/"*path
 	mkpath(tpath)
-	toml = get(pss.tree, ";", Dict())
+	toml = get(pss.tree, path, Dict())
 	tb = self(tree)
 	tb.setting = toml
 	# get <outline> and <unoutlined>
@@ -67,11 +67,9 @@ function scan_rec(tree::Doctree, pss::PagesSetting; outlined::Bool, path::String
 		end
 	end
 	for (num, dirname, omode) in saved_rec
-		push!(pathv, dirname)
 		tree.current = num
 		cd(dirname)
-		scan_rec(tree, pss; outlined = omode, path = "$(path)$(dirname)/", pathv = pathv)
-		pop!(pathv)
+		scan_rec(tree, pss; outlined = omode, path = "$(path)$(dirname)/")
 		backtoparent!(tree)
 		cd("..")
 	end

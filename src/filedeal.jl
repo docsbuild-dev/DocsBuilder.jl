@@ -3,7 +3,7 @@ function filedeal(v::Val; fbase::FileBase, method::Symbol, pss::PagesSetting)
 		method = default_filedealmethod(v)
 	end
 	if method == :copy
-		cp(pss.spath*pss.fullname, pss.tpath*pss.fullname; force=true)
+		cp(pss.source_leafpath, pss.target_leafpath; force=true)
 		fbase.generated = true
 		fbase.target = pss.fullname
 		return
@@ -12,7 +12,7 @@ function filedeal(v::Val; fbase::FileBase, method::Symbol, pss::PagesSetting)
 		filedeal_extra(v; fbase = fbase, pss = pss)
 		return
 	end
-	str = read(pss.spath*pss.fullname, String)
+	str = read(pss.source_leafpath, String)
 	fbase.target = fbase.name*pss.filesuffix
 	if method == :plain
 		fbase.data = html_safe(str)
