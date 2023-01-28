@@ -14,14 +14,21 @@ function build(source_root::AbstractString, target_root::AbstractString, pss::Pa
 	tree = Doctree("root")
 	docs = pss.root_folder.docs = remove_slash(pss.root_folder.docs)
 	cd(source_root*docs) do
-		scan_rec(tree, pss; outlined = true, path = "")
+		queue = [true, 1, "."]
+		while !isempty(queue)
+			omode, num, dirname = popfirst!(queue)
+			tree.current = num
+			cd(dirname) do
+				preprocess_build(tree, pss; outlined = omode, path = "", queue = queue)
+			end
+		end
 	end
 	cd(source_root*docs) do
 		wrap_rec(tree, pss; path = "", pathv = [])
 	end
 end
 
-function scan_rec(tree::Doctree, pss::PagesSetting; outlined::Bool, path::String)
+function preprocess_build(tree::Doctree, pss::PagesSetting; outlined::Bool, path::String, queue)
 	trace = pss.trace
 	trace.path = path
 	trace.source_path = trace.source_root*pss.root_folder.docs*path
@@ -33,11 +40,14 @@ function scan_rec(tree::Doctree, pss::PagesSetting; outlined::Bool, path::String
 	# get <outline> and <unoutlined>
 	unoutlined = readdir("."; sort = true)
 	for fullname in get(toml, "ignore", nothing)
-		deleteat!(unoutlined, searchsortedfirst(unoutlined, fullname))
+		find = searchsortedfirst(unoutlined, fullname)
+		iszero(find) || deleteat!(unoutlined, find)
 	end
 	outline = outlined ? get(toml, "outline", [])::Vector : []
 	for fullname in outline
-		deleteat!(unoutlined, searchsortedfirst(unoutlined, fullname))
+		find = searchsortedfirst(unoutlined, fullname)
+		iszero(find) && error("required item $fullname in outline does not exist")
+		deleteat!(unoutlined, find)
 	end
 	num = Base.length(tree.data)
 	i = 1
@@ -46,7 +56,6 @@ function scan_rec(tree::Doctree, pss::PagesSetting; outlined::Bool, path::String
 	len = len1 + len2
 	tb.children = num+1:num+len
 	ts = get(toml, "titles", Dict())::Dict
-	saved_rec = Tuple{Int, String, Bool}[]
 	methods = get(toml, "methods", Dict())::Dict
 	for i in 1:len
 		omode = i<=len1
@@ -66,14 +75,7 @@ function scan_rec(tree::Doctree, pss::PagesSetting; outlined::Bool, path::String
 			title = get(ts, fullname, fullname)
 			dbase = DirBase(omode, tree.current, fullname, title, nothing, Dict())
 			push!(tree.data, dbase)
-			push!(saved_rec, (num+i, fullname, omode))
+			push!(queue, (omode, num+i, fullname))
 		end
-	end
-	for (num, dirname, omode) in saved_rec
-		tree.current = num
-		cd(dirname)
-		scan_rec(tree, pss; outlined = omode, path = "$(path)$(dirname)/")
-		backtoparent!(tree)
-		cd("..")
 	end
 end
