@@ -70,7 +70,7 @@ function preprocess_build(tree::Doctree, pss::PagesSetting; outlined::Bool, path
 			title = get(ts, fullname, "")
 			fbase = FileBase(omode, true, tree.current, name, ext, title, "", "")
 			method = Symbol(get(methods, fullname, :default))
-			pss.trace.leafname = fullname
+			trace.leafname = fullname
 			filedeal(Val(Symbol(suf)); fbase = fbase, method = method, pss = pss)
 			if fbase.title == ""
 				fbase.title = name
@@ -86,6 +86,7 @@ function preprocess_build(tree::Doctree, pss::PagesSetting; outlined::Bool, path
 end
 
 function process_build(tree::Doctree, pss::PagesSetting; path::String, pathl::Int, queue)
+	trace = pss.trace
 	tpath = trace.target_path = trace.target_root*"docs/"*path
 	tb = self(tree)
 	toml = tb.setting
@@ -118,7 +119,7 @@ function process_build(tree::Doctree, pss::PagesSetting; path::String, pathl::In
 		outline_index = first_invec(fullname, vec)
 		if iszero(outline_index)
 			if !pmark
-				prevpage = """<a class="docs-footer-prevpage" href="$(pss.pages.build_index)">« Index</a>"""
+				prevpage = """<a class="docs-footer-prevpage" href="$(pss.pages.build_index)">« $(language_pack(pss, "^index"))</a>"""
 			end
 		else
 			i = outline_index
@@ -126,7 +127,7 @@ function process_build(tree::Doctree, pss::PagesSetting; path::String, pathl::In
 				if i==1
 					prevnid = prev_outlined(tree, nid)
 					prevpage = iszero(prevnid) ?
-						"""<a class="docs-footer-prevpage" href="$(pss.pages.build_index)">« Index</a>""" :
+						"""<a class="docs-footer-prevpage" href="$(pss.pages.build_index)">« $(language_pack(pss, "^index"))</a>""" :
 						get_pagestr(tree, pss, prevnid, true, simple_href=false)
 				else
 					prevpage = get_pagestr(tree, pss, @inbounds(vec[i-1]), true)
@@ -149,6 +150,7 @@ function process_build(tree::Doctree, pss::PagesSetting; path::String, pathl::In
 		navtext = isroot(tb) ? title : "$(tb.title) / $(title)"
 		ps = PageSetting(
 			description = description,
+			editpath = editpath(pss, path),
 			insert = base.data,
 			navbar_title = navtext,
 			nextpage = nextpage,
@@ -158,5 +160,5 @@ function process_build(tree::Doctree, pss::PagesSetting; path::String, pathl::In
 		html = build_wrapping_html(pss, ps)
 		write(tpath*base.target, html)
 	end
-	build_index(tree, pss; path = path)
+	build_index(tree, pss; path = path, pathl = pathl)
 end
