@@ -24,6 +24,23 @@ Base.getproperty(pss::PagesSetting, key::Symbol) = getproperty(getfield(pss, :fr
 Base.setproperty!(pss::PagesSetting, key::Symbol, x) = setproperty!(getfield(pss, :frame), key, x)
 
 const pagefoot = "Powered by <a href='https://github.com/JuliaRoadmap/DoctreePages.jl'>DoctreePages.jl</a> and its dependencies."
+const pagescripts = sframe(
+    :hljs_languages => [],
+    :main_requirement => ["jquery", "highlight"],
+    :requirejs => sframe(
+        :url => "https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js",
+        :configpaths => Dict{String, String}(
+            "headroom" => "https://cdnjs.cloudflare.com/ajax/libs/headroom/0.10.3/headroom.min",
+            "jquery" => "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.2/jquery.min",
+            "headroom-jquery" => "https://cdnjs.cloudflare.com/ajax/libs/headroom/0.10.3/jQuery.headroom.min",
+            "katex" => "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.4/katex.min",
+            "highlight" => "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min",
+        ),
+        :configshim => Dict(
+            "headroom-jquery" => Dict("deps" => ["jquery", "headroom"])
+        ),
+    )
+)
 const default_pagessettingframe = sframe(
     :content => sframe(
         :image => sframe(
@@ -46,7 +63,7 @@ const default_pagessettingframe = sframe(
     :page => sframe(
         :current => nothing,
         :foot => pagefoot,
-        :scripts => quickframe_page_scripts(),
+        :scripts => pagescripts,
     ),
     :pages => sframe(
         :build_404 => "404.html",
@@ -76,3 +93,24 @@ const default_pagessettingframe = sframe(
         :target_leafpath => CallCell(sf -> sf.target_path*sf.leafname),
     ),
 )
+
+function callcell_repopath(sf::SettingFrame)
+    rp = sf.repository
+    "https://github.com/$(rp.owner)/$(rp.name)/tree/$(rp.branch)/"
+end
+function quickframe_repository(;branch = "master", name, owner, path = nothing)
+    if isnothing(path)
+        path = CallCell(callcell_repopath)
+    end
+    sframe(:branch => branch, :name => name, :owner => owner, :path => path)
+end
+
+Base.@kwdef struct PageSetting
+    description::String
+	editpath::String
+    insert::String
+    navbar_title::String
+    nextpage::String
+    prevpage::String
+    tURL::String # trace-back-to-root-dir
+end

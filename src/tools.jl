@@ -8,6 +8,17 @@ function remove_slash(str)
 	return (ch == '/' || ch == '\\') ? str[1:prevind(str, lastind)] : str
 end
 
+function first_invec(x, vec::Vector)
+	i = 0
+	for (j, val) in enumerate(vec)
+		if val == x
+			i = j
+			break
+		end
+	end
+	return i
+end
+
 function spitext2(fullname)
 	dot = findlast('.', fullname)
 	isnothing(dot) && return (fullname, "")
