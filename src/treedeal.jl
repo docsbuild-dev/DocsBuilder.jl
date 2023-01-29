@@ -12,7 +12,8 @@ function build(source_root::AbstractString, target_root::AbstractString, pss::Pa
 	pss.trace.source_root = source_root = expand_slash(abspath(source_root))
 	pss.trace.target_root = target_root = expand_slash(abspath(target_root))
 	tree = Doctree("root")
-	docs = pss.root_folder.docs = remove_slash(pss.root_folder.docs)
+	root_folder = pss.root_folder
+	docs = root_folder.docs = remove_slash(pss.root_folder.docs)
 	cd(source_root*docs) do
 		queue = [(true, 1, ".")]
 		while !isempty(queue)
@@ -31,6 +32,15 @@ function build(source_root::AbstractString, target_root::AbstractString, pss::Pa
 			process_build(tree, pss; path = path, pathl = pathl, queue = queue)
 		end
 	end
+	cd(srcdir) do
+		for (k, v) in root_folder.copies
+			isdir(k) && cp(k, joinpath(target_root, v); force=true)
+		end
+	end
+	build_mainpage(tree, pss)
+	build_404(tree, pss)
+	build_main_script(tree, pss)
+	build_info_script(tree, pss)
 end
 
 function preprocess_build(tree::Doctree, pss::PagesSetting; outlined::Bool, path::String, queue)

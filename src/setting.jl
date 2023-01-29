@@ -60,11 +60,12 @@ const default_pagessettingframe = sframe(
     ),
     :repository => nothing,
     :root_folder => sframe(
-        :assets => "assets",
-        :css => "css",
         :docs => "docs",
-        :extra => "extra",
-        :script => "script",
+        :copies => Dict(
+            "assets" => "assets",
+            "script" => "script",
+            "extra" => "extra",
+        )
     ),
     :remove_original => true,
     :temp => sframe(),
@@ -73,5 +74,5 @@ const default_pagessettingframe = sframe(
     :trace => sframe(
         :source_leafpath => CallCell(sf -> sf.source_path*sf.leafname),
         :target_leafpath => CallCell(sf -> sf.target_path*sf.leafname),
-    ),    
+    ),
 )
