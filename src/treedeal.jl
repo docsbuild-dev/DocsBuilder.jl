@@ -14,7 +14,7 @@ function build(source_root::AbstractString, target_root::AbstractString, pss::Pa
 	tree = Doctree("root")
 	docs = pss.root_folder.docs = remove_slash(pss.root_folder.docs)
 	cd(source_root*docs) do
-		queue = [true, 1, "."]
+		queue = [(true, 1, ".")]
 		while !isempty(queue)
 			omode, num, dirname = popfirst!(queue)
 			tree.current = num
@@ -24,7 +24,12 @@ function build(source_root::AbstractString, target_root::AbstractString, pss::Pa
 		end
 	end
 	cd(source_root*docs) do
-		wrap_rec(tree, pss; path = "", pathv = [])
+		queue = [(1, "", 0)]
+		while !isempty(queue)
+			nid, path, pathl = popfirst!(queue)
+			tree.current = nid
+			process_build(tree, pss; path = path, pathl = pathl, queue = queue)
+		end
 	end
 end
 
@@ -78,4 +83,80 @@ function preprocess_build(tree::Doctree, pss::PagesSetting; outlined::Bool, path
 			push!(queue, (omode, num+i, fullname))
 		end
 	end
+end
+
+function process_build(tree::Doctree, pss::PagesSetting; path::String, pathl::Int, queue)
+	tpath = trace.target_path = trace.target_root*"docs/"*path
+	tb = self(tree)
+	toml = tb.setting
+	vec = get(toml, "outline", [])
+	vec::Vector
+	len = length(vec)
+	prevpages = get(toml, "prevpages", Dict())
+	nextpages = get(toml, "nextpages", Dict())
+	for nid in tb.children
+		base = tree.data[nid]
+		if isa(base, DirBase)
+			push!(queue, (nid, path*base.name, pathl))
+			continue
+		end
+		base::FileBase
+		base.need_wrap || continue
+		fullname = fullname(base)
+		prevpage = ""
+		nextpage = ""
+		pmark = haskey(prevpages, fullname)
+		nmark = haskey(nextpages, fullname)
+		if pmark
+			th = prevpages[fullname]
+			prevpage = isempty(th) ? "" : get_pagestr(tree, pss, th, true)
+		end
+		if nmark
+			th = nextpages[fullname]
+			nextpage = isempty(th) ? "" : get_pagestr(tree, pss, th, false)
+		end
+		outline_index = first_invec(fullname, vec)
+		if iszero(outline_index)
+			if !pmark
+				prevpage = """<a class="docs-footer-prevpage" href="$(pss.pages.build_index)">« Index</a>"""
+			end
+		else
+			i = outline_index
+			if !pmark
+				if i==1
+					prevnid = prev_outlined(tree, nid)
+					prevpage = iszero(prevnid) ?
+						"""<a class="docs-footer-prevpage" href="$(pss.pages.build_index)">« Index</a>""" :
+						get_pagestr(tree, pss, prevnid, true, simple_href=false)
+				else
+					prevpage = get_pagestr(tree, pss, @inbounds(vec[i-1]), true)
+				end
+			end
+			if !nmark
+				if i==len
+					nextnid = next_outlined(tree, nid)
+					nextpage = iszero(nextnid) ?
+						"" :
+						get_pagestr(tree, pss, nextnid, false, simple_href=false)
+				else
+					nextpage = get_pagestr(tree, pss, @inbounds(vec[i+1]), false)
+				end
+			end
+		end
+		title = base.title
+		protitle = pss.project.title
+		description = isroot(tb) ? "$title - $(protitle)" : "$(tb.title)/$(title) - $(protitle)"
+		navtext = isroot(tb) ? title : "$(tb.title) / $(title)"
+		ps = PageSetting(
+			description = description,
+			insert = base.data,
+			navbar_title = navtext,
+			nextpage = nextpage,
+			prevpage = prevpage,
+			tURL = "../"^pathl
+		)
+		html = build_wrapping_html(pss, ps)
+		write(tpath*base.target, html)
+	end
+	build_index(tree, pss; path = path)
 end
