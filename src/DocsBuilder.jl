@@ -11,6 +11,8 @@ include("load_setting.jl")
 
 # Tree
 include("doctree.jl")
+include("share.jl")
+include("spec_build.jl")
 include("treedeal.jl")
 
 # File Dealing
