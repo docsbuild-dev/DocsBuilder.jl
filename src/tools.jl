@@ -39,3 +39,9 @@ function get_pagestr(tree, pss, fullname::String, is_prev)
 	end
 	return get_pagestr(tree, pss, nid, is_prev)
 end
+
+function editpath(pss, path)
+	repo = pss.repository
+	isnothing(repo) || return ""
+	joinpath(repo.path, path)
+end
