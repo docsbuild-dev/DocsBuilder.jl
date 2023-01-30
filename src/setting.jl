@@ -66,7 +66,6 @@ const default_pagessettingframe = sframe(
         :scripts => pagescripts,
     ),
     :pages => sframe(
-        :build_404 => "404.html",
         :build_index => "index.html",
         :fileext => ".html",
     ),
@@ -77,12 +76,15 @@ const default_pagessettingframe = sframe(
     ),
     :repository => nothing,
     :root_folder => sframe(
-        :docs => "docs",
+        :build_404 => "404.html",
+        :build_info_script => "extra/info.js",
+        :build_mainpage => "index.html",
         :copies => Dict(
             "assets" => "assets",
             "script" => "script",
             "extra" => "extra",
         )
+        :docs => "docs",
     ),
     :remove_original => true,
     :temp => sframe(),

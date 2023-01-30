@@ -26,3 +26,38 @@ function build_index(tree::Doctree, pss::PagesSetting; path::String, pathl::Int)
 	html = build_wrapping_html(pss, ps)
 	write(pss.trace.target_path*bd, html)
 end
+
+function rep(str::AbstractString)
+	return replace(str, '`' => "\\`")
+end
+function generate_menu(tree::Doctree, pss::PagesSetting, ind::Int = 1)
+	return "['',$(_generate_menu(tree, pss, ind))]"
+end
+function _generate_menu(tree::Doctree, pss::PagesSetting, ind::Int)
+	str = ""
+	for nid in tree.data[ind].children
+		base = tree.data[nid]
+		if !base.is_outlined
+			break
+		end
+		if isa(base, FileBase)
+			str *= "`$(rep(base.target))|$(rep(base.title))`,"
+		else
+			str *= "[`$(rep(base.name))|$(rep(base.title))`,$(_generate_menu(tree, pss, nid))],"
+		end
+	end
+	return str
+end
+function build_info_script(tree::Doctree, pss::PagesSetting)
+	open("$(pss.trace.target_root)$(pss.root_folder.build_info_script)", "w") do io
+		println(io, "const __lang=`$(rep(pss.meta.lang))`")
+		println(io, "const buildmessage=`$(rep(pss.meta.buildmessage))`")
+		println(io, "const page_foot=`$(rep(pss.page.foot))`")
+		ms = pss.page.scripts
+		println(io, "const menu=", generate_menu(tree, pss))
+		println(io, "const configpaths=$(ms[:requirejs][:configpaths])")
+		println(io, "const configshim=$(ms[:requirejs][:configshim])")
+		println(io, "const hljs_languages=$(ms[:hljs_languages])")
+		println(io, "const main_requirement=$(ms[:main_requirement])")
+	end
+end
