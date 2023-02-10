@@ -61,3 +61,17 @@ function build_info_script(tree::Doctree, pss::PagesSetting)
 		println(io, "const main_requirement=$(ms[:main_requirement])")
 	end
 end
+
+function build_httpstatuspage(_::Doctree, pss::PagesSetting, code::Integer)
+	path = pss.root_folder.build_httpstatuspage[code]
+	tarpage = joinpath(pss.target_root, path)
+	str = ""
+	if isfile(path)
+		methods = settingof(path).methods
+		if analyze
+		else
+		end
+	else
+		str = "Error (HTTP Status Code: $code)"
+	end
+end

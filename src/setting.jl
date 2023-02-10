@@ -76,7 +76,7 @@ const default_pagessettingframe = sframe(
     ),
     :repository => nothing,
     :root_folder => sframe(
-        :build_404 => "404.html",
+        :build_httpstatuspage => Dict(404 => "404.html"),
         :build_info_script => "extra/info.js",
         :build_mainpage => "index.html",
         :copies => Dict(
