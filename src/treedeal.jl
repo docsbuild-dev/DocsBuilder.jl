@@ -12,9 +12,7 @@ function build(source_root::AbstractString, target_root::AbstractString, pss::Pa
 	pss.trace.source_root = source_root = expand_slash(abspath(source_root))
 	pss.trace.target_root = target_root = expand_slash(abspath(target_root))
 	tree = Doctree("root")
-	root_folder = pss.root_folder
-	docs = root_folder.docs = remove_slash(pss.root_folder.docs)
-	cd(source_root*docs) do
+	cd(source_root) do
 		queue = [(true, 1, ".")]
 		while !isempty(queue)
 			omode, num, dirname = popfirst!(queue)
@@ -24,17 +22,12 @@ function build(source_root::AbstractString, target_root::AbstractString, pss::Pa
 			end
 		end
 	end
-	cd(source_root*docs) do
+	cd(source_root) do
 		queue = [(1, "", 0)]
 		while !isempty(queue)
 			nid, path, pathl = popfirst!(queue)
 			tree.current = nid
 			process_build(tree, pss; path = path, pathl = pathl, queue = queue)
-		end
-	end
-	cd(srcdir) do
-		for (k, v) in root_folder.copies
-			isdir(k) && cp(k, joinpath(target_root, v); force=true)
 		end
 	end
 	build_mainpage(tree, pss)
@@ -46,8 +39,8 @@ end
 function preprocess_build(tree::Doctree, pss::PagesSetting; outlined::Bool, path::String, queue)
 	trace = pss.trace
 	trace.path = path
-	trace.source_path = trace.source_root*pss.root_folder.docs*path
-	tpath = trace.target_path = trace.target_root*"docs/"*path
+	trace.source_path = trace.source_root*path
+	tpath = trace.target_path = trace.target_root*path
 	mkpath(tpath)
 	toml = get(pss.tree, path, Dict())
 	tb = self(tree)
@@ -101,7 +94,7 @@ end
 
 function process_build(tree::Doctree, pss::PagesSetting; path::String, pathl::Int, queue)
 	trace = pss.trace
-	tpath = trace.target_path = trace.target_root*"docs/"*path
+	tpath = trace.target_path = trace.target_root*path
 	tb = self(tree)
 	toml = tb.setting
 	vec = get(toml, "outline", [])

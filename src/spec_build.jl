@@ -49,7 +49,7 @@ function _generate_menu(tree::Doctree, pss::PagesSetting, ind::Int)
 	return str
 end
 function build_info_script(tree::Doctree, pss::PagesSetting)
-	open("$(pss.trace.target_root)$(pss.root_folder.build_info_script)", "w") do io
+	open("$(pss.trace.target_root)$(pss.root_build.info_script)", "w") do io
 		println(io, "const __lang=`$(rep(pss.meta.lang))`")
 		println(io, "const buildmessage=`$(rep(pss.meta.buildmessage))`")
 		println(io, "const page_foot=`$(rep(pss.page.foot))`")
@@ -63,7 +63,7 @@ function build_info_script(tree::Doctree, pss::PagesSetting)
 end
 
 function build_httpstatuspage(_::Doctree, pss::PagesSetting, code::Integer)
-	path = pss.root_folder.build_httpstatuspage[code]
+	path = pss.root_build.httpstatuspage[code]
 	tarpage = joinpath(pss.target_root, path)
 	str = ""
 	if isfile(path)

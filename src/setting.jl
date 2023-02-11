@@ -75,16 +75,10 @@ const default_pagessettingframe = sframe(
         :title => "Project",
     ),
     :repository => nothing,
-    :root_folder => sframe(
-        :build_httpstatuspage => Dict(404 => "404.html"),
-        :build_info_script => "extra/info.js",
-        :build_mainpage => "index.html",
-        :copies => Dict(
-            "assets" => "assets",
-            "script" => "script",
-            "extra" => "extra",
-        )
-        :docs => "docs",
+    :root_build => sframe(
+        :httpstatuspage => Dict(404 => "404.html"),
+        :info_script => "extra/info.js",
+        :mainpage => "index.html",
     ),
     :remove_original => true,
     :temp => sframe(),
