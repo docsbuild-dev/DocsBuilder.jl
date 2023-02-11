@@ -53,10 +53,14 @@ function preprocess_build(tree::Doctree, pss::PagesSetting; outlined::Bool, path
 	tb = self(tree)
 	tb.setting = toml
 	# get <outline> and <unoutlined>
-	unoutlined = readdir("."; sort = true)
-	for fullname in get(toml, "ignore", nothing)
-		find = searchsortedfirst(unoutlined, fullname)
-		iszero(find) || deleteat!(unoutlined, find)
+	if haskey(toml, "noignore")
+		unoutlined = sort(toml["noignore"])
+	else
+		unoutlined = readdir("."; sort = true)
+		for fullname in get(toml, "ignore", nothing)
+			find = searchsortedfirst(unoutlined, fullname)
+			iszero(find) || deleteat!(unoutlined, find)
+		end
 	end
 	outline = outlined ? get(toml, "outline", [])::Vector : []
 	for fullname in outline
