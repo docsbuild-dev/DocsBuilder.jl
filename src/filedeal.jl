@@ -38,3 +38,12 @@ default_filedealmethod(::Val{:js}) = :copy
 default_filedealmethod(::Val{:py}) = :codeblock
 default_filedealmethod(::Val{:ts}) = :copy
 default_filedealmethod(::Val{:txt}) = :plain
+
+function analyze_method(path)
+	dir, file = splitdir(path)
+	method = settingof(dir)["methods"][file]
+	if isnothing(method) || method == "default"
+		return default_filedealmethod(Val(Symbol(splitext2(file)[2])))
+	end
+	return Symbol(method)
+end

@@ -67,11 +67,19 @@ function build_httpstatuspage(_::Doctree, pss::PagesSetting, code::Integer)
 	tarpage = joinpath(pss.target_root, path)
 	str = ""
 	if isfile(path)
-		methods = settingof(path).methods
-		if analyze
+		srcpage = joinpath(pss.source_root, path)
+		m = analyze_method(path)
+		if m == :copy
+			cp(srcpage, tarpage)
+			return
 		else
+			@info "Currently HTTP Status Page only supports method 'copy' and 'plain'."
+			str = read(srcpage, String)
 		end
 	else
 		str = "Error (HTTP Status Code: $code)"
 	end
+	write(tarpage, build_wrapping_html(pss, PageSetting(
+		insert = str,
+	)))
 end
