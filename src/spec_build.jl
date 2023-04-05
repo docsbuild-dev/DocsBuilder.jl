@@ -68,7 +68,7 @@ function build_httpstatuspage(_::Doctree, pss::PagesSetting, code::Integer)
 	str = ""
 	if isfile(path)
 		srcpage = joinpath(pss.source_root, path)
-		m = analyze_method(path)
+		m = analyze_method(pss.tree, path)
 		if m == :copy
 			cp(srcpage, tarpage)
 			return

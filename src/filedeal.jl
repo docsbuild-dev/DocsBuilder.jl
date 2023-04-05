@@ -39,9 +39,9 @@ default_filedealmethod(::Val{:py}) = :codeblock
 default_filedealmethod(::Val{:ts}) = :copy
 default_filedealmethod(::Val{:txt}) = :plain
 
-function analyze_method(path)
+function analyze_method(tree, path)
 	dir, file = splitdir(path)
-	method = settingof(dir)["methods"][file]
+	method = settingof(tree, dir)["methods"][file]
 	if isnothing(method) || method == "default"
 		return default_filedealmethod(Val(Symbol(splitext2(file)[2])))
 	end
